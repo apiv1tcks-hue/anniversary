@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Anniversary 💕</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Prompt & Mitr -->
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .font-mitr {
+            font-family: 'Mitr', sans-serif;
+        }
+
+        /* Gradient background matching main theme */
+        body {
+            background: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 40%, #e8aeac 70%, #ffb5a7 100%);
+            min-height: 100vh;
+            color: #4a4e69;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism card effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(225, 112, 137, 0.18);
+        }
+
+        .glass-card-subtle {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Polaroid Hover Effect */
+        .polaroid {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .polaroid:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(225, 112, 137, 0.25);
+        }
+
+        /* Floating background hearts */
+        .heart-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatUp 7s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(105vh) scale(0.5) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.2) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Soft pulse animation */
+        @keyframes softPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .animate-soft-pulse {
+            animation: softPulse 2s infinite ease-in-out;
+        }
+
+        /* Error Shake Animation for Lock Screen */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* Keypad button ripple effect */
+        .keypad-btn {
+            transition: all 0.15s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .keypad-btn:active {
+            transform: scale(0.92);
+            background-color: rgba(244, 63, 94, 0.2);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen pb-24">
+
+    <!-- Floating Background Hearts -->
+    <div id="heart-container"></div>
+
+    <!-- ===================================================
+         🔒 PASSCODE LOCK SCREEN (หน้าป้อนตัวเลขเข้าสู่เว็บ)
+    =================================================== -->
+    <div id="lock-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
+        <div id="lock-card" class="glass-card max-w-sm w-full p-6 md:p-8 rounded-3xl text-center relative overflow-hidden shadow-2xl transition-all">
+            <!-- Decorative Glow Elements -->
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-pink-300/50 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-rose-400/40 rounded-full blur-2xl"></div>
+
+            <!-- Icon Header -->
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-rose-500 text-white text-2xl mb-3 shadow-lg shadow-rose-300 animate-soft-pulse relative z-10">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+
+            <h2 class="text-2xl font-bold text-slate-800 font-mitr mb-1 relative z-10">ยินดีต้อนรับ 💕</h2>
+            <p class="text-xs text-slate-600 mb-5 relative z-10">กรอกวันที่คบกันเพื่อเข้าสู่เว็บของเรานะจ๊ะ</p>
+
+            <!-- PIN Display Dots -->
+            <div class="flex justify-center items-center gap-2 mb-4 relative z-10">
+                <input type="text" id="passcode-input" readonly placeholder="DD/MM/YY" 
+                    class="w-full text-center text-xl font-bold font-mitr tracking-widest py-2.5 px-4 bg-white/70 rounded-2xl border-2 border-rose-300 text-rose-600 focus:outline-none focus:border-rose-500 shadow-inner">
+            </div>
+
+            <!-- Error / Hint Message Banner -->
+            <div id="lock-msg" class="text-xs text-rose-500 font-medium min-h-[20px] mb-3 transition-all relative z-10"></div>
+
+            <!-- On-Screen Keypad -->
+            <div class="grid grid-cols-3 gap-2 mb-4 relative z-10">
+                <button onclick="pressKey('1')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">1</button>
+                <button onclick="pressKey('2')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">2</button>
+                <button onclick="pressKey('3')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">3</button>
+                <button onclick="pressKey('4')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">4</button>
+                <button onclick="pressKey('5')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">5</button>
+                <button onclick="pressKey('6')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">6</button>
+                <button onclick="pressKey('7')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">7</button>
+                <button onclick="pressKey('8')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">8</button>
+                <button onclick="pressKey('9')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">9</button>
+                <button onclick="clearKey()" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-medium text-slate-500 text-sm hover:bg-white/80 flex items-center justify-center">ล้าง</button>
+                <button onclick="pressKey('0')" class="keypad-btn glass-card-subtle py-3 rounded-2xl font-bold text-slate-700 text-lg hover:bg-white/80">0</button>
+                <button onclick="deleteKey()" class="keypad-btn glass-card-subtle py-3 rounded-2xl text-slate-600 text-sm hover:bg-white/80 flex items-center justify-center">
+                    <i class="fa-solid fa-backspace"></i>
+                </button>
+            </div>
+
+            <!-- Action Unlock Button -->
+            <button onclick="verifyPasscode()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 rounded-2xl shadow-lg shadow-rose-300 transition-all font-mitr text-sm flex items-center justify-center gap-2 active:scale-95 relative z-10">
+                <span>ปลดล็อกหัวใจ</span>
+                <i class="fa-solid fa-heart"></i>
+            </button>
+
+            <!-- Hint toggle button -->
+            <button onclick="toggleHint()" class="mt-3 text-[11px] text-slate-500 hover:text-rose-500 underline transition relative z-10 block mx-auto">
+                💡 ใบ้วันที่หน่อยสิ
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ===================================================
+         💖 MAIN APPLICATION CONTENT (เนื้อหาหลัก - ซ่อนด้วย style display: none)
+    =================================================== -->
+    <div id="main-content" style="display: none;" class="max-w-2xl mx-auto px-4 py-8 relative z-10">
+
+        <!-- Top Navigation / Relock Option -->
+        <div class="flex justify-end mb-2">
+            <button onclick="relockWebsite()" class="text-xs text-slate-600 hover:text-rose-600 bg-white/40 hover:bg-white/70 px-3 py-1.5 rounded-full border border-white/60 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-lock text-[10px]"></i>
+                <span>ล็อกหน้าเว็บ</span>
+            </button>
+        </div>
+
+        <!-- Header Section -->
+        <header class="text-center my-4">
+            <div class="glass-card p-6 md:p-8 rounded-3xl relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-pink-300/40 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-rose-400/30 rounded-full blur-2xl"></div>
+
+                <!-- Heart Icon Badge -->
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-rose-500 text-white text-2xl mb-4 shadow-lg shadow-rose-300 animate-soft-pulse">
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+
+                <!-- 📌 จุดแก้ไขที่ 1: ชื่อของคุณและแฟน -->
+                <h1 class="text-3xl md:text-5xl font-bold text-slate-800 tracking-tight font-mitr mb-2">
+                    <span class="text-rose-500">เปรม</span> & <span class="text-rose-500">น้ำอิง</span>
+                </h1>
+
+                <!-- 📌 จุดแก้ไขที่ 2: สโลแกน / ความในใจสั้นๆ -->
+                <p class="text-slate-600 text-sm md:text-base mt-2">
+                    "ขอบคุณนะที่คอยยิ้มและอยู่ข้างๆ กันมาตลอด 💖"
+                </p>
+            </div>
+        </header>
+
+        <!-- Real-time Anniversary Timer Card -->
+        <section class="my-8">
+            <div class="glass-card p-6 md:p-8 rounded-3xl text-center relative">
+                <h2 class="text-lg md:text-xl font-medium text-slate-700 mb-4 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-clock text-rose-400"></i> เรารักกันมาแล้ว...
+                </h2>
+
+                <div class="grid grid-cols-4 gap-2 md:gap-4 my-4">
+                    <div class="glass-card-subtle p-3 rounded-2xl shadow-sm">
+                        <span id="days" class="block text-2xl md:text-4xl font-bold text-rose-500 font-mitr">0</span>
+                        <span class="text-xs text-slate-500 font-light">วัน</span>
+                    </div>
+                    <div class="glass-card-subtle p-3 rounded-2xl shadow-sm">
+                        <span id="hours" class="block text-2xl md:text-4xl font-bold text-rose-500 font-mitr">0</span>
+                        <span class="text-xs text-slate-500 font-light">ชั่วโมง</span>
+                    </div>
+                    <div class="glass-card-subtle p-3 rounded-2xl shadow-sm">
+                        <span id="minutes" class="block text-2xl md:text-4xl font-bold text-rose-500 font-mitr">0</span>
+                        <span class="text-xs text-slate-500 font-light">นาที</span>
+                    </div>
+                    <div class="glass-card-subtle p-3 rounded-2xl shadow-sm">
+                        <span id="seconds" class="block text-2xl md:text-4xl font-bold text-rose-500 font-mitr">0</span>
+                        <span class="text-xs text-slate-500 font-light">วินาที</span>
+                    </div>
+                </div>
+
+                <p id="start-date-label" class="text-xs text-slate-500 mt-4 bg-white/40 py-1.5 px-4 rounded-full inline-block">
+                    ตกลงคบกันเมื่อ: 1 มีนาคม 2569 เวลา 23:30 น.
+                </p>
+            </div>
+        </section>
+
+        <!-- Polaroid Memory Photo Gallery -->
+        <section class="my-10">
+            <div class="text-center mb-6">
+                <h3 class="text-xl md:text-2xl font-bold text-slate-800 font-mitr">ความทรงจำของเรา 📷</h3>
+                <p class="text-xs text-slate-600 mt-1">แตะที่รูปเพื่อดูข้อความน่ารักๆ</p>
+            </div>
+
+            <!-- 📌 จุดแก้ไขที่ 3: ลิงก์รูปภาพและข้อความใน Polaroid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+
+                <!-- Photo Card 1 -->
+                <div class="polaroid bg-white p-3 rounded-2xl shadow-md cursor-pointer" onclick="openModal('ครั้งแรกที่เจอกัน ', 'จำวันแรกที่เราเจอกันได้มั้ย เค้าเจอเธอครั้งเค้าคิดว่าเธอน่ารักมากเยย เธอกินราเมงไปเขินไป เค้าเขินมาก เธอน่ารักมากเยย', 'https://i.postimg.cc/BQsrVXHL/d7953bc9-e0e3-4119-8a04-10aa5903da68.jpg')">
+                    <img src="https://i.postimg.cc/bYbGRFHL/5c552bb9-c2cf-45f6-877b-4bce10d8540e.jpg" alt="Memory 1" class="w-full h-48 object-cover rounded-xl mb-3" onerror="this.src='https://placehold.co/400x300/ffc2d1/4a4e69?text=Memory+1'">
+                    <p class="text-center text-sm font-medium text-slate-700">ครั้งแรกที่เจอกัน </p>
+                </div>
+
+                <!-- Photo Card 2 -->
+                <div class="polaroid bg-white p-3 rounded-2xl shadow-md cursor-pointer" onclick="openModal('ครั้งแรกที่เราเที่ยวด้วยกัน', 'วันที่เราเที่ยวด้วยกันครั้งแรก เป็นวันที่เค้าได้ของขวัญชิ้นแรกจากเธอนะ คาปิบาร่ากับดอกทานตะวัน น่ารักมากเยย ขอบุณนะคับ', 'https://i.postimg.cc/Dz804Cz2/931a6e98-faed-4597-8314-a25e437795e4.jpg')">
+                    <img src="https://i.postimg.cc/Dz804Cz2/931a6e98-faed-4597-8314-a25e437795e4.jpg" alt="Memory 2" class="w-full h-48 object-cover rounded-xl mb-3" onerror="this.src='https://placehold.co/400x300/ffc2d1/4a4e69?text=Memory+2'">
+                    <p class="text-center text-sm font-medium text-slate-700">ครั้งแรกที่เราเที่ยวด้วยกัน </p>
+                </div>
+
+                <!-- Photo Card 3 -->
+                <div class="polaroid bg-white p-3 rounded-2xl shadow-md cursor-pointer" onclick="openModal('ทุกวันที่เราอยู่ด้วยกัน', 'รักเธอมากขึ้นทุกวันนะคับ ขอให้เธอมียิ้มสดใสทุกๆ วันนะ', 'https://i.postimg.cc/7L0vR7s7/2b85fd6b-e592-4f9c-9f8e-e06e63afee09.jpg')">
+                    <img src="https://i.postimg.cc/85dS7WMh/cbdb7084-d944-4cbb-b103-23f0f719954f.jpg" alt="Memory 3" class="w-full h-48 object-cover rounded-xl mb-3" onerror="this.src='https://placehold.co/400x300/ffc2d1/4a4e69?text=Memory+3'">
+                    <p class="text-center text-sm font-medium text-slate-700">ทุกวันที่เราอยู่ด้วยกัน</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Runaway Button Mini Game Section -->
+        <section class="my-10 text-center">
+            <div class="glass-card p-6 md:p-8 rounded-3xl relative">
+                <h3 class="text-xl font-bold text-slate-800 mb-1 font-mitr">ถามอะไรหน่อยดิ... 🤔</h3>
+                <p class="text-sm text-slate-600 mb-6">"เธอรักเค้าบ้างไหมเนี่ย?"</p>
+
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4 min-h-[70px] relative" id="quiz-container">
+                    <button id="btn-yes" onclick="clickYes()" class="bg-rose-500 hover:bg-rose-600 text-white font-medium px-8 py-3 rounded-full shadow-lg shadow-rose-300 transition-all transform hover:scale-105 active:scale-95">
+                        รักที่สุดเลย! ❤️
+                    </button>
+
+                    <button id="btn-no" class="bg-slate-200 text-slate-600 font-medium px-8 py-3 rounded-full shadow transition-all duration-200">
+                        ไม่รัก 😜
+                    </button>
+                </div>
+
+                <p id="quiz-response" class="mt-4 text-rose-500 font-bold hidden font-mitr animate-bounce"></p>
+            </div>
+        </section>
+
+        <!-- Secret Envelope Love Letter -->
+        <section class="my-10 text-center">
+            <div class="glass-card p-6 md:p-8 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-800 mb-2 font-mitr">ของขวัญและความในใจ 🎁</h3>
+                <p class="text-xs text-slate-600 mb-6">แตะที่กล่องของขวัญเพื่อเปิดอ่านจดหมายลับ</p>
+
+                <div id="gift-box" onclick="openLetter()" class="cursor-pointer bg-white/60 p-6 rounded-2xl border-2 border-dashed border-rose-300 hover:bg-white/80 transition-all transform hover:scale-102">
+                    <div id="gift-icon" class="text-5xl mb-2 text-rose-500 animate-bounce">🎁</div>
+                    <span id="gift-hint" class="text-xs font-semibold text-rose-500 block">กดตรงนี้เพื่อเปิดกล่องของขวัญ</span>
+
+                    <!-- Typing Letter Output -->
+                    <div id="letter-wrapper" class="hidden mt-6 bg-white p-6 rounded-2xl shadow-inner text-left relative">
+                        <!-- 📌 จุดแก้ไขที่ 4: ข้อความในจดหมายรัก -->
+                        <p id="typed-letter-text" class="text-slate-700 leading-relaxed text-sm md:text-base whitespace-pre-line font-light"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs text-slate-500 my-8">
+            อยู่ด้วยกันมา 8 เดือนแล้ว อยู่กันไปด้วยกันต่อไปนะคับ❤️
+        </footer>
+
+    </div>
+
+
+    <!-- Polaroid Image Detail Modal -->
+    <div id="photo-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeModal()">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-4 shadow-2xl relative" onclick="event.stopPropagation()">
+            <img id="modal-img" src="" class="w-full h-64 object-cover rounded-2xl mb-4" onerror="this.src='https://placehold.co/400x300/ffc2d1/4a4e69?text=Image'">
+            <h4 id="modal-title" class="font-bold text-lg text-slate-800 mb-1 text-center font-mitr"></h4>
+            <p id="modal-desc" class="text-sm text-slate-600 text-center leading-relaxed font-light mb-4"></p>
+            <button onclick="closeModal()" class="w-full bg-rose-500 text-white text-xs py-2.5 rounded-full font-medium hover:bg-rose-600 transition">ปิด ✖️</button>
+        </div>
+    </div>
+
+    <script>
+        /* ===================================================
+           📌 จุดแก้ไข: ตั้งค่าวันครบรอบ และ Passcode เข้าเว็บ
+           วันที่: 1 มีนาคม 2026 เวลา 23:30 น. (1 มีนาคม 2569)
+        =================================================== */
+        const anniversaryDate = new Date(2026, 2, 1, 23, 30, 0); // Month 2 = March (0-indexed)
+
+        // รหัสผ่านที่อนุญาตสำหรับปลดล็อกหน้าเว็บ (ใส่อันไหนก็ผ่านได้)
+        const validPasscodes = [
+            "010369",   // 01/03/69
+            "010326",   // 01/03/26
+            "01032026", // 01/03/2026
+            "01032569", // 01/03/2569
+            "1369",     // 1/3/69
+            "0103",     // 01/03
+            "1326"      // 1/3/26
+        ];
+
+        /* ===================================================
+           📌 PASSCODE LOGIC (ระบบควบคุมหน้าล็อก)
+        =================================================== */
+        const passcodeDisplay = document.getElementById('passcode-input');
+        const lockMsg = document.getElementById('lock-msg');
+        const lockCard = document.getElementById('lock-card');
+        const lockScreen = document.getElementById('lock-screen');
+        const mainContent = document.getElementById('main-content');
+
+        function pressKey(num) {
+            if (passcodeDisplay.value.length < 10) {
+                passcodeDisplay.value += num;
+                lockMsg.innerText = '';
+            }
+        }
+
+        function clearKey() {
+            passcodeDisplay.value = '';
+            lockMsg.innerText = '';
+        }
+
+        function deleteKey() {
+            passcodeDisplay.value = passcodeDisplay.value.slice(0, -1);
+            lockMsg.innerText = '';
+        }
+
+        function toggleHint() {
+            lockMsg.innerText = "💡 คำใบ้: วันที่เราตกลงคบกันนะจ๊ะ (เช่น 010369 หรือ 010326)";
+        }
+
+        function verifyPasscode() {
+            const inputVal = passcodeDisplay.value.replace(/[^0-9]/g, '');
+
+            if (validPasscodes.includes(inputVal)) {
+                // Correct Passcode!
+                lockMsg.innerText = "ถูกต้องแล้วครับ! กำลังเปิดหน้าเว็บ... 💕";
+                lockMsg.className = "text-xs text-emerald-600 font-medium min-h-[20px] mb-3 transition-all relative z-10";
+
+                // Confetti celebration
+                confetti({
+                    particleCount: 100,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#ff4d6d', '#ff758f', '#ffb3c1', '#ffffff']
+                });
+
+                // ซ่อนหน้าล็อกและแสดงหน้าหลักทันทีแบบชัวร์ๆ
+                setTimeout(() => {
+                    lockScreen.style.display = 'none';
+                    mainContent.style.display = 'block';
+                }, 800);
+
+            } else {
+                // Wrong Passcode!
+                lockMsg.innerText = "รหัสไม่ถูกต้องนะ ลองใส่วันที่คบกันดูใหม่นะจ๊ะ ❌";
+                lockMsg.className = "text-xs text-rose-500 font-medium min-h-[20px] mb-3 transition-all relative z-10";
+                
+                // Trigger Shake Animation
+                lockCard.classList.remove('animate-shake');
+                void lockCard.offsetWidth; // Trigger reflow
+                lockCard.classList.add('animate-shake');
+
+                // Clear input
+                setTimeout(() => {
+                    passcodeDisplay.value = '';
+                }, 500);
+            }
+        }
+
+        function relockWebsite() {
+            mainContent.style.display = 'none';
+            lockScreen.style.display = 'flex';
+            passcodeDisplay.value = '';
+            lockMsg.innerText = '';
+        }
+
+        /* ===================================================
+           📌 จุดแก้ไขที่ 8: ข้อความในจดหมายรัก
+        =================================================== */
+        const loveLetterText = `ถึงคนพิเศษของเค้า... ❤️
+
+สุขสันต์วันครบรอบนะคับ ขอบคุณที่อยู่ด้วยกันตั้งแต่วันแรกจนถึงวันนี้นะคับ เค้ารู้สึกโชคดีมากๆ ที่มีเธออยู่ในชีวิต
+
+อยู่เป็นรอยยิ้มและความสุขให้กันแบบนี้ไปนานๆ นะคับ เค้าสัญญาว่าจะคอยอยู่ข้างๆ และดูแลเธอให้ดีที่สุดเลย
+
+ถึงเค้าจะทำอะไรผิดพลาดไปบ้าง แต่เค้าก็อยากให้เธอรู้ว่าเค้ารักเธอมากๆ และจะพยายามเป็นคนที่ดีกว่านี้เพื่อเธอเสมอ
+
+เราอยู่ด้วยกันมา 8 เดือนแล้วนะคับ และเค้าหวังว่าเราจะอยู่ด้วยกันไปอีกนานๆ เลย
+
+ขอบคุณที่เธอเข้ามาในชีวิตเค้า และทำให้ทุกวันของเค้ามีความหมายมากขึ้น
+
+รักเธอที่สุดในโลกเลยนะ 💕`;
+
+        // Real-time Timer Calculations
+        function updateTimer() {
+            const now = new Date();
+            const diff = now - anniversaryDate;
+
+            const isFuture = diff < 0;
+            const absDiff = Math.abs(diff);
+
+            const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((absDiff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((absDiff / (1000 * 60)) % 60);
+            const seconds = Math.floor((absDiff / 1000) % 60);
+
+            document.getElementById('days').innerText = days;
+            document.getElementById('hours').innerText = hours;
+            document.getElementById('minutes').innerText = minutes;
+            document.getElementById('seconds').innerText = seconds;
+
+            if (isFuture) {
+                document.getElementById('start-date-label').innerText = "นับถอยหลังสู่วันครบรอบ: 1 มีนาคม 2569 เวลา 23:30 น.";
+            } else {
+                document.getElementById('start-date-label').innerText = "ตกลงคบกันเมื่อ: 1 มีนาคม 2569 เวลา 23:30 น.";
+            }
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // Background Hearts Particle Spawners
+        function createFloatingHeart() {
+            const container = document.getElementById('heart-container');
+            const heart = document.createElement('div');
+            heart.classList.add('heart-particle');
+            heart.innerText = ['❤️', '💖', '💕', '🌸', '✨'][Math.floor(Math.random() * 5)];
+            heart.style.left = Math.random() * 95 + 'vw';
+            heart.style.fontSize = Math.random() * 14 + 14 + 'px';
+            heart.style.animationDuration = Math.random() * 3 + 5 + 's';
+
+            container.appendChild(heart);
+            setTimeout(() => heart.remove(), 7000);
+        }
+        setInterval(createFloatingHeart, 600);
+
+        // Photo Modal Logic
+        function openModal(title, text, imgSrc) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = text;
+            document.getElementById('modal-img').src = imgSrc;
+            document.getElementById('photo-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('photo-modal').classList.add('hidden');
+        }
+
+        // Runaway Button Logic
+        const btnNo = document.getElementById('btn-no');
+        function dodgeButton() {
+            const maxX = 130;
+            const maxY = 60;
+            const randomX = (Math.random() - 0.5) * maxX * 2;
+            const randomY = (Math.random() - 0.5) * maxY * 2;
+            btnNo.style.transform = `translate(${randomX}px, ${randomY}px)`;
+        }
+
+        btnNo.addEventListener('mouseover', dodgeButton);
+        btnNo.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            dodgeButton();
+        });
+
+        function clickYes() {
+            const response = document.getElementById('quiz-response');
+            response.innerText = "เย้! รู้หรอกว่าต้องตอบข้อนี้ 🥰❤️";
+            response.classList.remove('hidden');
+
+            // Celebration Confetti
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.7 },
+                colors: ['#ff4d6d', '#ff758f', '#ffb3c1', '#ffffff']
+            });
+        }
+
+        // Typewriter Effect Letter Logic
+        let letterOpened = false;
+        function openLetter() {
+            const wrapper = document.getElementById('letter-wrapper');
+            const hint = document.getElementById('gift-hint');
+            const icon = document.getElementById('gift-icon');
+
+            wrapper.classList.remove('hidden');
+            hint.innerText = "กล่องของขวัญถูกเปิดแล้ว ❤️";
+            icon.innerText = "💌";
+            icon.classList.remove('animate-bounce');
+
+            if (!letterOpened) {
+                letterOpened = true;
+                let charIndex = 0;
+                const outputEl = document.getElementById('typed-letter-text');
+
+                function typeChar() {
+                    if (charIndex < loveLetterText.length) {
+                        outputEl.innerHTML += loveLetterText.charAt(charIndex) === '\n' ? '<br>' : loveLetterText.charAt(charIndex);
+                        charIndex++;
+                        setTimeout(typeChar, 35);
+                    }
+                }
+                typeChar();
+            }
+        }
+    </script>
+</body>
+</html>
